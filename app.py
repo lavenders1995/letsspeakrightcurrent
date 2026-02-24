@@ -5,28 +5,27 @@ import io
 import time
 
 # Sayfa Ayarları
-st.set_page_config(page_title="İngilizce Telaffuz Atölyesi", page_icon="⭐")
+st.set_page_config(page_title="İngilizce Telaffuz Atölyesi", page_icon="🎤")
 
-# --- GELİŞMİŞ TASARIM (CSS) ---
+# --- RENKLİ TASARIM (CSS) ---
 st.markdown("""
     <style>
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
-    /* Yıldız Butonu Stili */
-    .stButton>button[kind="secondary"] {
-        background-color: #FFD700;
-        color: black;
-        font-weight: bold;
-        border: 2px solid #b8860b;
-        border-radius: 20px;
+    /* Mobil uyumlu büyük butonlar */
+    .stButton>button {
+        width: 100%;
+        border-radius: 12px;
+        height: 3em;
     }
-    /* Bilgi Notu */
-    .info-note {
-        font-size: 0.8rem;
-        color: #666;
+    .yildiz-kutusu {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 15px;
         text-align: center;
-        margin-top: 20px;
+        border: 2px solid #FFD700;
+        margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -37,27 +36,15 @@ if 'yildizlar' not in st.session_state:
 if 'basarilanlar' not in st.session_state:
     st.session_state.basarilanlar = set()
 
-# --- YAN PANEL (SIDEBAR) ---
-with st.sidebar:
-    st.header("🌟 Başarı Tablon")
-    st.metric(label="Toplam Yıldız", value=st.session_state.yildizlar)
-    st.divider()
-    st.subheader("✅ Başarılanlar:")
-    for k in sorted(st.session_state.basarilanlar):
-        st.write(f"⭐ {k}")
-    
-    if st.button("İlerlemeyi Sıfırla"):
-        st.session_state.yildizlar = 0
-        st.session_state.basarilanlar = set()
-        st.rerun()
-
-# --- ANA EKRAN ---
+# --- ANA EKRAN (MOBİL İÇİN YILDIZLAR EN ÜSTTE) ---
 st.title("🎤 Telaffuz Pratiği")
 
-# MOBİL İÇİN ÖZEL BUTON: Yan paneli açmaya yönlendirir
-if st.button("📊 YILDIZLARIMI VE LİSTEMİ GÖR"):
-    st.info("Sol üstteki menü açıldı (veya telefonunuzun sol kenarından çekin)!")
-    # Bu buton aslında bir hatırlatıcıdır, sidebar zaten oradadır.
+# Yıldızları yan panel yerine ana ekranda en üste taşıdık
+st.markdown(f"""
+    <div class="yildiz-kutusu">
+        <h2 style='margin:0;'>⭐ Toplam Yıldız: {st.session_state.yildizlar}</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Kelime Listesi
 kelimeler_ham = ["the", "think", "thought", "about", "are", "refuse", "use", "she", "chat", "accept", "language", "country", "umbrella", "quick", "who", "what", "where", "three", "speak", "sign", "join", "jump", "location", "bathroom", "today", "wednesday", "thursday", "watch", "rarely", "usually", "generally", "current", "university", "choose"]
@@ -65,6 +52,7 @@ kelimeler = [k.title() for k in kelimeler_ham]
 
 secilen_kelime = st.selectbox("Bir kelime seçin:", kelimeler)
 
+# Ses ve Kayıt Alanı
 col1, col2 = st.columns(2)
 with col1:
     if st.button(f"🔊 {secilen_kelime} Dinle"):
@@ -78,22 +66,27 @@ with col2:
     if audio_record:
         st.audio(audio_record['bytes'])
 
-# BAŞARI BUTONU VE BALONLAR
+# BAŞARI BUTONU
 st.divider()
-if st.button("✅ BAŞARDIM, YILDIZIMI VER!", use_container_width=True):
+if st.button("BAŞARDIM! YILDIZ VER ⭐"):
     if secilen_kelime not in st.session_state.basarilanlar:
-        # Önce veriyi güncelle
         st.session_state.yildizlar += 1
         st.session_state.basarilanlar.add(secilen_kelime)
-        
-        # BALONLAR BURADA ÇIKIYOR
-        st.balloons()
-        
-        # Balonların ekranda kalması için minik bir mesaj gösterip bekliyoruz
-        st.success(f"Tebrikler! {secilen_kelime} kelimesini başardın!")
-        time.sleep(1.5) # Balonların bitmesini bekle
+        st.balloons() # Balonlar artık daha net görünecek
+        time.sleep(0.5) # Balonların görünmesi için yarım saniye bekleme
         st.rerun()
     else:
-        st.warning("Bu kelimeyi zaten listene eklemişsin!")
+        st.info("Bu kelimeyi zaten başarmışsın!")
 
-st.markdown('<div class="info-note">⚠️ Sayfayı yenilerseniz yıldızlar silinir. Verileriniz kaydedilmez.</div>', unsafe_allow_html=True)
+# Başarılan kelimeleri alt kısma ekledik (Mobilde görünür olması için)
+if st.session_state.basarilanlar:
+    with st.expander("✅ Başardığın Kelimeleri Gör"):
+        st.write(", ".join(sorted(st.session_state.basarilanlar)))
+
+st.markdown('<div style="font-size:0.8rem; color:grey; text-align:center; margin-top:50px;">⚠️ Sayfa yenilenirse ilerleme silinir.</div>', unsafe_allow_html=True)
+
+# Sıfırlama Butonu
+if st.button("İlerlemeyi Sıfırla 🗑️"):
+    st.session_state.yildizlar = 0
+    st.session_state.basarilanlar = set()
+    st.rerun()
