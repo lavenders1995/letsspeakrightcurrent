@@ -22,9 +22,9 @@ st.markdown("""
         border: 1px solid #fce4ec;
     }
 
-    /* Başarılı Kelimeler ve Yıldız Kutusu */
+    /* Yıldız Paneli */
     .yildiz-panel {
-        background-color: #fff9c4; /* Pastel Sarı */
+        background-color: #fff9c4;
         padding: 20px;
         border-radius: 20px;
         text-align: center;
@@ -32,23 +32,26 @@ st.markdown("""
         margin: 20px 0;
     }
 
-    /* Buton Renkleri */
-    .stButton>button {
-        border-radius: 20px;
-        border: none;
-        transition: all 0.3s;
+    /* Yazı ve Buton Ortalama */
+    .centered-content {
+        text-align: center;
     }
     
     /* Ana Başlık */
-    h1 { color: #8e24aa; font-family: 'Comic Sans MS', cursive; }
-    h3 { color: #5e35b1; }
+    h1 { color: #8e24aa; font-family: 'Comic Sans MS', cursive; text-align: center; }
+    h3 { color: #5e35b1; text-align: center; }
     
+    /* Sıfırla Butonu Özel Ortalama */
+    div.stButton > button:first-child {
+        display: block;
+        margin: 0 auto;
+    }
+
     .info-note {
         font-size: 0.85rem;
         color: #888;
         text-align: center;
         margin-top: 30px;
-        padding: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -69,10 +72,10 @@ kelimeler_ham = [
 ]
 kelimeler = [k.title() for k in kelimeler_ham]
 
-# Yeni Başlık: İngilizce Telaffuz Alıştırması
+# Başlık
 st.title("🎤 İngilizce Telaffuz Alıştırması")
 
-# --- YILDIZ TABLOSU (Görünür Halde) ---
+# Yıldız Paneli
 st.markdown(f"""
     <div class="yildiz-panel">
         <h2 style='margin:0; color:#fbc02d;'>⭐ Toplam Yıldızın: {st.session_state.yildizlar} ⭐</h2>
@@ -82,7 +85,6 @@ st.markdown(f"""
 secilen_kelime = st.selectbox("Bir kelime seçin:", kelimeler)
 
 col1, col2 = st.columns(2)
-
 with col1:
     st.markdown("### 1. Doğru Ses")
     if st.button(f"🔊 '{secilen_kelime}' Dinle"):
@@ -93,40 +95,34 @@ with col1:
 
 with col2:
     st.markdown("### 2. Senin Sesin")
-    audio_record = mic_recorder(
-        start_prompt="Kaydı Başlat 🎙️",
-        stop_prompt="Durdur ⏹️",
-        key='recorder'
-    )
+    audio_record = mic_recorder(start_prompt="Kaydı Başlat 🎙️", stop_prompt="Durdur ⏹️", key='recorder')
     if audio_record:
         st.audio(audio_record['bytes'])
 
-# Başarı Butonu
 st.divider()
 if st.button("Başardım! Yıldız Ver ⭐", use_container_width=True):
     if secilen_kelime not in st.session_state.basarilanlar:
         st.session_state.yildizlar += 1
         st.session_state.basarilanlar.add(secilen_kelime)
-        
-        # BALONLARIN GÖRÜNMESİ VE SÜRESİ
         st.balloons()
-        st.success(f"Tebrikler! {secilen_kelime} kelimesini başarıyla söyledin!")
-        
-        # Balonların keyfini çıkarmak için 3 saniye bekleme süresi
+        st.success(f"Tebrikler! {secilen_kelime} kelimesini başardın!")
         time.sleep(3) 
         st.rerun()
     else:
         st.info("Bu kelimeyi zaten başarmışsın!")
 
-# --- BAŞARILAN KELİMELER LİSTESİ ---
+# --- ORTALANMIŞ ALT KISIM ---
 if st.session_state.basarilanlar:
-    st.markdown("### 🏆 Başardığın Kelimeler")
-    st.write(", ".join(sorted(st.session_state.basarilanlar)))
+    st.markdown("<h3 style='text-align: center;'>🏆 Başardığın Kelimeler</h3>", unsafe_allow_html=True)
+    başarı_metni = ", ".join(sorted(st.session_state.basarilanlar))
+    st.markdown(f"<p style='text-align: center; font-size: 1.1rem;'>{başarı_metni}</p>", unsafe_allow_html=True)
 
-# Sayfa Sonu ve Sıfırlama
-st.markdown('<div class="info-note">⚠️ Sayfayı yenilerseniz ilerlemeniz sıfırlanır. Verileriniz sunucuda saklanmaz.</div>', unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True) # Boşluk
 
+# Sıfırlama Butonu (CSS ile ortalandı)
 if st.button("Tüm İlerlemeyi Sıfırla 🗑️"):
     st.session_state.yildizlar = 0
     st.session_state.basarilanlar = set()
     st.rerun()
+
+st.markdown('<div class="info-note">⚠️ Sayfayı yenilerseniz ilerlemeniz sıfırlanır. Verileriniz kaydedilmez.</div>', unsafe_allow_html=True)
