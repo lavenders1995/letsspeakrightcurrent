@@ -7,54 +7,41 @@ import time
 # Sayfa Ayarları
 st.set_page_config(page_title="İngilizce Telaffuz Alıştırması", page_icon="🎤")
 
-# --- ESTETİK VE ÇERÇEVELİ TASARIM (CSS) ---
+# --- PASTEL RENKLİ TASARIM (CSS) ---
 st.markdown("""
     <style>
-    /* Arka Plan */
+    /* Pastel Pembe-Mavi-Lila Geçişi */
     .stApp {
         background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
     }
     
-    /* Bölüm Çerçeveleri (Modern Buzlu Cam Efekti) */
-    .main-card {
-        background: rgba(255, 255, 255, 0.4);
-        border-radius: 20px;
-        padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
+    /* Kartlar için Pastel Tonlar */
+    .stSelectbox, .stAudio, div[data-testid="stExpander"] {
+        background-color: rgba(255, 255, 255, 0.6);
+        border-radius: 15px;
+        border: 1px solid #fce4ec;
     }
 
-    /* Yıldız Paneli Özel Çerçeve */
+    /* Yıldız Paneli */
     .yildiz-panel {
-        background-color: rgba(255, 249, 196, 0.7);
+        background-color: #fff9c4;
         padding: 20px;
         border-radius: 20px;
         text-align: center;
         border: 2px dashed #ffd54f;
-        box-shadow: 0 4px 10px rgba(255, 213, 79, 0.2);
         margin: 20px 0;
     }
 
-    /* Başarılı Kelimeler Alt Çerçeve */
-    .success-card {
-        background: rgba(255, 255, 255, 0.5);
-        border-radius: 15px;
-        padding: 20px;
-        border: 1px solid #a5d6a7;
+    /* Yazı ve Buton Ortalama */
+    .centered-content {
         text-align: center;
-        margin-top: 20px;
     }
     
-    /* Yazı Stilleri */
+    /* Ana Başlık */
     h1 { color: #8e24aa; font-family: 'Comic Sans MS', cursive; text-align: center; }
-    h3 { color: #5e35b1; text-align: center; margin-bottom: 15px; }
+    h3 { color: #5e35b1; text-align: center; }
     
-    /* Butonları Ortalama ve Güzelleştirme */
-    div.stButton > button {
-        border-radius: 12px;
-        transition: 0.3s;
-    }
+    /* Sıfırla Butonu Özel Ortalama */
     div.stButton > button:first-child {
         display: block;
         margin: 0 auto;
@@ -65,7 +52,6 @@ st.markdown("""
         color: #888;
         text-align: center;
         margin-top: 30px;
-        font-style: italic;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -89,15 +75,13 @@ kelimeler = [k.title() for k in kelimeler_ham]
 # Başlık
 st.title("🎤 İngilizce Telaffuz Alıştırması")
 
-# Yıldız Paneli (Çerçeveli)
+# Yıldız Paneli
 st.markdown(f"""
     <div class="yildiz-panel">
         <h2 style='margin:0; color:#fbc02d;'>⭐ Toplam Yıldızın: {st.session_state.yildizlar} ⭐</h2>
     </div>
     """, unsafe_allow_html=True)
 
-# Ana Alıştırma Alanı Çerçevesi
-st.markdown('<div class="main-card">', unsafe_allow_html=True)
 secilen_kelime = st.selectbox("Bir kelime seçin:", kelimeler)
 
 col1, col2 = st.columns(2)
@@ -114,11 +98,8 @@ with col2:
     audio_record = mic_recorder(start_prompt="Kaydı Başlat 🎙️", stop_prompt="Durdur ⏹️", key='recorder')
     if audio_record:
         st.audio(audio_record['bytes'])
-st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
-
-# Başarı Butonu
 if st.button("Başardım! Yıldız Ver ⭐", use_container_width=True):
     if secilen_kelime not in st.session_state.basarilanlar:
         st.session_state.yildizlar += 1
@@ -130,17 +111,15 @@ if st.button("Başardım! Yıldız Ver ⭐", use_container_width=True):
     else:
         st.info("Bu kelimeyi zaten başarmışsın!")
 
-# --- ORTALANMIŞ ALT KISIM (Çerçeveli) ---
+# --- ORTALANMIŞ ALT KISIM ---
 if st.session_state.basarilanlar:
-    st.markdown('<div class="success-card">', unsafe_allow_html=True)
-    st.markdown("<h3>🏆 Başardığın Kelimeler</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>🏆 Başardığın Kelimeler</h3>", unsafe_allow_html=True)
     başarı_metni = ", ".join(sorted(st.session_state.basarilanlar))
-    st.markdown(f"<p style='font-size: 1.1rem; color: #2e7d32;'>{başarı_metni}</p>", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; font-size: 1.1rem;'>{başarı_metni}</p>", unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True) # Boşluk
 
-# Sıfırlama Butonu
+# Sıfırlama Butonu (CSS ile ortalandı)
 if st.button("Tüm İlerlemeyi Sıfırla 🗑️"):
     st.session_state.yildizlar = 0
     st.session_state.basarilanlar = set()
