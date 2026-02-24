@@ -7,86 +7,122 @@ import time
 # Sayfa Ayarları
 st.set_page_config(page_title="İngilizce Telaffuz Atölyesi", page_icon="🎤")
 
-# --- RENKLİ TASARIM (CSS) ---
+# --- PASTEL RENKLİ TASARIM (CSS) ---
 st.markdown("""
     <style>
+    /* Pastel Pembe-Mavi-Lila Geçişi */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
     }
-    /* Mobil uyumlu büyük butonlar */
-    .stButton>button {
-        width: 100%;
-        border-radius: 12px;
-        height: 3em;
-    }
-    .yildiz-kutusu {
-        background-color: #ffffff;
-        padding: 15px;
+    
+    /* Kartlar için Pastel Tonlar */
+    .stSelectbox, .stAudio, div[data-testid="stExpander"] {
+        background-color: rgba(255, 255, 255, 0.6);
         border-radius: 15px;
+        border: 1px solid #fce4ec;
+    }
+
+    /* Başarılı Kelimeler ve Yıldız Kutusu */
+    .yildiz-panel {
+        background-color: #fff9c4; /* Pastel Sarı */
+        padding: 20px;
+        border-radius: 20px;
         text-align: center;
-        border: 2px solid #FFD700;
-        margin-bottom: 20px;
+        border: 2px dashed #ffd54f;
+        margin: 20px 0;
+    }
+
+    /* Buton Renkleri */
+    .stButton>button {
+        border-radius: 20px;
+        border: none;
+        transition: all 0.3s;
+    }
+    
+    /* Ana Başlık */
+    h1 { color: #8e24aa; font-family: 'Comic Sans MS', cursive; }
+    h3 { color: #5e35b1; }
+    
+    .info-note {
+        font-size: 0.85rem;
+        color: #888;
+        text-align: center;
+        margin-top: 30px;
+        padding: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SESSION STATE ---
+# --- UYGULAMA MANTIĞI ---
 if 'yildizlar' not in st.session_state:
     st.session_state.yildizlar = 0
 if 'basarilanlar' not in st.session_state:
     st.session_state.basarilanlar = set()
 
-# --- ANA EKRAN (MOBİL İÇİN YILDIZLAR EN ÜSTTE) ---
-st.title("🎤 Telaffuz Pratiği")
+# Kelimeler Listesi
+kelimeler_ham = [
+    "the", "think", "thought", "about", "are", "refuse", "use", "she", "chat", 
+    "accept", "language", "country", "umbrella", "quick", "who", "what", 
+    "where", "three", "speak", "sign", "join", "jump", "location", "bathroom", 
+    "today", "wednesday", "thursday", "watch", "rarely", "usually", "generally", 
+    "current", "university", "choose"
+]
+kelimeler = [k.title() for k in kelimeler_ham]
 
-# Yıldızları yan panel yerine ana ekranda en üste taşıdık
+# Ana Ekran Başlığı
+st.title("🎤 Telaffuz Atölyesi")
+
+# --- YILDIZ TABLOSU (ANA EKRANDA EN ÜSTTE) ---
 st.markdown(f"""
-    <div class="yildiz-kutusu">
-        <h2 style='margin:0;'>⭐ Toplam Yıldız: {st.session_state.yildizlar}</h2>
+    <div class="yildiz-panel">
+        <h2 style='margin:0; color:#fbc02d;'>⭐ Toplam Yıldızın: {st.session_state.yildizlar} ⭐</h2>
     </div>
     """, unsafe_allow_html=True)
 
-# Kelime Listesi
-kelimeler_ham = ["the", "think", "thought", "about", "are", "refuse", "use", "she", "chat", "accept", "language", "country", "umbrella", "quick", "who", "what", "where", "three", "speak", "sign", "join", "jump", "location", "bathroom", "today", "wednesday", "thursday", "watch", "rarely", "usually", "generally", "current", "university", "choose"]
-kelimeler = [k.title() for k in kelimeler_ham]
-
 secilen_kelime = st.selectbox("Bir kelime seçin:", kelimeler)
 
-# Ses ve Kayıt Alanı
 col1, col2 = st.columns(2)
+
 with col1:
-    if st.button(f"🔊 {secilen_kelime} Dinle"):
+    st.markdown("### 1. Doğru Ses")
+    if st.button(f"🔊 '{secilen_kelime}' Dinle"):
         tts = gTTS(text=secilen_kelime, lang='en')
         fp = io.BytesIO()
         tts.write_to_fp(fp)
         st.audio(fp, format='audio/mp3')
 
 with col2:
-    audio_record = mic_recorder(start_prompt="🎙️ Kaydet", stop_prompt="⏹️ Durdur", key='recorder')
+    st.markdown("### 2. Senin Sesin")
+    audio_record = mic_recorder(
+        start_prompt="Kaydı Başlat 🎙️",
+        stop_prompt="Durdur ⏹️",
+        key='recorder'
+    )
     if audio_record:
         st.audio(audio_record['bytes'])
 
-# BAŞARI BUTONU
+# Başarı Butonu
 st.divider()
-if st.button("BAŞARDIM! YILDIZ VER ⭐"):
+if st.button("Başardım! Yıldız Ver ⭐", use_container_width=True):
     if secilen_kelime not in st.session_state.basarilanlar:
         st.session_state.yildizlar += 1
         st.session_state.basarilanlar.add(secilen_kelime)
-        st.balloons() # Balonlar artık daha net görünecek
-        time.sleep(0.5) # Balonların görünmesi için yarım saniye bekleme
+        st.balloons()
+        # Balonların görünmesi için kısa bir bekleme ve anında yenileme
+        time.sleep(0.5)
         st.rerun()
     else:
         st.info("Bu kelimeyi zaten başarmışsın!")
 
-# Başarılan kelimeleri alt kısma ekledik (Mobilde görünür olması için)
+# --- BAŞARILAN KELİMELER LİSTESİ (ALTTA VE AÇIK) ---
 if st.session_state.basarilanlar:
-    with st.expander("✅ Başardığın Kelimeleri Gör"):
-        st.write(", ".join(sorted(st.session_state.basarilanlar)))
+    st.markdown("### 🏆 Başardığın Kelimeler")
+    st.write(", ".join(sorted(st.session_state.basarilanlar)))
 
-st.markdown('<div style="font-size:0.8rem; color:grey; text-align:center; margin-top:50px;">⚠️ Sayfa yenilenirse ilerleme silinir.</div>', unsafe_allow_html=True)
-
-# Sıfırlama Butonu
-if st.button("İlerlemeyi Sıfırla 🗑️"):
+# Temizleme Butonu (Sayfanın en altına küçük bir buton)
+if st.button("Tüm İlerlemeyi Sıfırla 🗑️"):
     st.session_state.yildizlar = 0
     st.session_state.basarilanlar = set()
     st.rerun()
+
+st.markdown('<div class="info-note">⚠️ Gizlilik ve İlerleme: Sayfayı yenilediğinizde tüm ses kayıtları ve yıldız ilerlemeniz sıfırlanır. Verileriniz kaydedilmez.</div>', unsafe_allow_html=True)
