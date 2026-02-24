@@ -5,7 +5,7 @@ import io
 import time
 
 # Sayfa Ayarları
-st.set_page_config(page_title="İngilizce Telaffuz Atölyesi", page_icon="🎤")
+st.set_page_config(page_title="İngilizce Telaffuz Alıştırması", page_icon="🎤")
 
 # --- PASTEL RENKLİ TASARIM (CSS) ---
 st.markdown("""
@@ -69,10 +69,10 @@ kelimeler_ham = [
 ]
 kelimeler = [k.title() for k in kelimeler_ham]
 
-# Ana Ekran Başlığı
-st.title("🎤 Telaffuz Atölyesi")
+# Yeni Başlık: İngilizce Telaffuz Alıştırması
+st.title("🎤 İngilizce Telaffuz Alıştırması")
 
-# --- YILDIZ TABLOSU (ANA EKRANDA EN ÜSTTE) ---
+# --- YILDIZ TABLOSU (Görünür Halde) ---
 st.markdown(f"""
     <div class="yildiz-panel">
         <h2 style='margin:0; color:#fbc02d;'>⭐ Toplam Yıldızın: {st.session_state.yildizlar} ⭐</h2>
@@ -107,22 +107,26 @@ if st.button("Başardım! Yıldız Ver ⭐", use_container_width=True):
     if secilen_kelime not in st.session_state.basarilanlar:
         st.session_state.yildizlar += 1
         st.session_state.basarilanlar.add(secilen_kelime)
+        
+        # BALONLARIN GÖRÜNMESİ VE SÜRESİ
         st.balloons()
-        # Balonların görünmesi için kısa bir bekleme ve anında yenileme
-        time.sleep(0.5)
+        st.success(f"Tebrikler! {secilen_kelime} kelimesini başarıyla söyledin!")
+        
+        # Balonların keyfini çıkarmak için 3 saniye bekleme süresi
+        time.sleep(3) 
         st.rerun()
     else:
         st.info("Bu kelimeyi zaten başarmışsın!")
 
-# --- BAŞARILAN KELİMELER LİSTESİ (ALTTA VE AÇIK) ---
+# --- BAŞARILAN KELİMELER LİSTESİ ---
 if st.session_state.basarilanlar:
     st.markdown("### 🏆 Başardığın Kelimeler")
     st.write(", ".join(sorted(st.session_state.basarilanlar)))
 
-# Temizleme Butonu (Sayfanın en altına küçük bir buton)
+# Sayfa Sonu ve Sıfırlama
+st.markdown('<div class="info-note">⚠️ Sayfayı yenilerseniz ilerlemeniz sıfırlanır. Verileriniz sunucuda saklanmaz.</div>', unsafe_allow_html=True)
+
 if st.button("Tüm İlerlemeyi Sıfırla 🗑️"):
     st.session_state.yildizlar = 0
     st.session_state.basarilanlar = set()
     st.rerun()
-
-st.markdown('<div class="info-note">⚠️ Gizlilik ve İlerleme: Sayfayı yenilediğinizde tüm ses kayıtları ve yıldız ilerlemeniz sıfırlanır. Verileriniz kaydedilmez.</div>', unsafe_allow_html=True)
